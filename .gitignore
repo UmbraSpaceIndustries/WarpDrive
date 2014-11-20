@@ -1,0 +1,11 @@
+*.suo
+Source/WarpEngine/WarpEngine/bin/Debug/Assembly-CSharp-firstpass.dll
+Source/WarpEngine/WarpEngine/bin/Debug/Assembly-CSharp.dll
+Source/WarpEngine/WarpEngine/bin/Debug/Mono.Security.dll
+Source/WarpEngine/WarpEngine/bin/Debug/TDx.TDxInput.dll
+Source/WarpEngine/WarpEngine/bin/Debug/UnityEngine.dll
+Source/WarpEngine/WarpEngine/bin/Debug/WarpEngine.pdb
+Source/WarpEngine/WarpEngine/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+Source/WarpEngine/WarpEngine/obj/Debug/WarpEngine.csproj.FileListAbsolute.txt
+Source/WarpEngine/WarpEngine/bin/Debug/Mono.Cecil.dll
+Source/WarpEngine/WarpEngine/obj/Debug/WarpEngine.dll
