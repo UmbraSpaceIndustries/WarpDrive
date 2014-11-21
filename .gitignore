@@ -9,3 +9,4 @@ Source/WarpEngine/WarpEngine/obj/Debug/DesignTimeResolveAssemblyReferencesInput.
 Source/WarpEngine/WarpEngine/obj/Debug/WarpEngine.csproj.FileListAbsolute.txt
 Source/WarpEngine/WarpEngine/bin/Debug/Mono.Cecil.dll
 Source/WarpEngine/WarpEngine/obj/Debug/WarpEngine.dll
+*.zip
