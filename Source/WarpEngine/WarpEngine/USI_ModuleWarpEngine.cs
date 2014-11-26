@@ -12,7 +12,7 @@ namespace WarpEngine
         public float BreakingForce { get; set; }
         public float BreakingTorque { get; set; }
         public float CrashTolerance { get; set; }
-        public int PhysicsSignificance { get; set; }
+        public RigidbodyConstraints Constraints { get; set; }
     }
     public class USI_ModuleWarpEngine : PartModule
     {
@@ -32,7 +32,7 @@ namespace WarpEngine
         public float Demasting = 10f;
 
         [KSPField]
-        public float MaxAccelleration = 10000f;
+        public int MaxAccelleration = 4;
 
         [KSPField]
         public float MinThrottle = 0.05f;
@@ -47,7 +47,7 @@ namespace WarpEngine
         public int BubbleSize = 20;
         
         [KSPField]
-        public int MinAltitude = 50000;
+        public float MinAltitude = 1f;
 
         [KSPEvent(guiActive = true, active = true, guiActiveEditor = true, guiName = "Toggle Bubble Guide")]
         public void ToggleBubbleGuide()
@@ -151,13 +151,15 @@ namespace WarpEngine
                                        ShipPart = vp,
                                        BreakingForce = vp.breakingForce,
                                        BreakingTorque = vp.breakingTorque,
-                                       CrashTolerance = vp.crashTolerance
+                                       CrashTolerance = vp.crashTolerance,
+                                       Constraints = vp.rigidbody.constraints
                                    });
                     vp.breakingForce = Mathf.Infinity;
                     vp.breakingTorque = Mathf.Infinity;
                     vp.crashTolerance = Mathf.Infinity;
                 }
-                
+                vessel.rigidbody.constraints &= RigidbodyConstraints.FreezeRotation;
+                FlightGlobals.overrideOrbit = true;
             }
 
             else
@@ -176,9 +178,12 @@ namespace WarpEngine
                             sp.ShipPart.breakingForce = sp.BreakingForce;
                             sp.ShipPart.breakingTorque = sp.BreakingTorque;
                             sp.ShipPart.crashTolerance = sp.CrashTolerance;
+                            sp.ShipPart.rigidbody.constraints = sp.Constraints;
                         }
                     }
+                    vessel.rigidbody.constraints &= ~RigidbodyConstraints.FreezeRotation;
                 }
+                FlightGlobals.overrideOrbit = false;
             }
         }
 
@@ -198,7 +203,7 @@ namespace WarpEngine
                 if (IsDeployed)
                 {
                     //Failsafe
-                    if (vessel.altitude < MinAltitude)
+                    if (vessel.altitude < FlightGlobals.currentMainBody.Radius * MinAltitude)
                     {
                         eModule.Shutdown();
                         return;
@@ -221,7 +226,7 @@ namespace WarpEngine
                     PlayWarpAnimation(1 + (eModule.currentThrottle * (WarpFactor * 3)));
 
                     //Start by adding in our subluminal speed which is exponential
-                    double lowerThrottle = (double)eModule.currentThrottle * SUBLIGHT_MULT;
+                    double lowerThrottle = (Math.Min(eModule.currentThrottle, SUBLIGHT_THROTTLE) * SUBLIGHT_MULT);
                     double distance = Math.Pow(lowerThrottle, SUBLIGHT_POWER);
                     
                     //Then if throttle is over our threshold, go linear
@@ -238,31 +243,43 @@ namespace WarpEngine
                         distance += additionalDistance;
                     }
 
-                    //Take into acount safe accelleration/decelleration
-                    if (distance > CurrentSpeed + MaxAccelleration)
-                        distance = CurrentSpeed + MaxAccelleration;
-                    if (distance < CurrentSpeed - MaxAccelleration)
-                        distance = CurrentSpeed - MaxAccelleration;
 
+                    //Take into acount safe accelleration/decelleration
+                    if (distance > CurrentSpeed + Math.Pow(10,MaxAccelleration))
+                        distance = CurrentSpeed + Math.Pow(10, MaxAccelleration);
+                    if (distance < CurrentSpeed - Math.Pow(10, MaxAccelleration))
+                        distance = CurrentSpeed - Math.Pow(10, MaxAccelleration);
                     CurrentSpeed = distance;
+
+                    if (distance > 1000)
+                    {
+                        //Let's see if we can get rid of precision issues with distance.
+                        Int32 precision = Math.Round(distance, 0).ToString().Length - 1;
+                        if (precision > MaxAccelleration) precision = MaxAccelleration;
+                        var magnitude = Math.Round((distance / Math.Pow(10, precision)),0);
+                        var jumpDistance = Math.Pow(10,precision) * magnitude;
+                        distance = jumpDistance;
+                    }
+
 
                     double c = (distance * 50) / LIGHTSPEED;
                     status = String.Format("{1:n0} m/s [{0:0}%c]", c*100f, distance * 50);
 
-                    //If we are below our throttle, we kill all angular velocity.
-                    if (eModule.currentThrottle <= MinThrottle)
+                    //We should only freeze position past minimum throttle.
+                    if (eModule.currentThrottle > MinThrottle)
                     {
+                        //Wiggling around is fatal
                         foreach (var p in vessel.parts)
                         {
-                            p.rigidbody.angularVelocity *= .99f;
+                            p.Rigidbody.angularVelocity *= 0f;
+                            p.Rigidbody.velocity *= 0f;
                         }
-                    }
-                    else
-                    {
-                        //Otherwise we reposition as normal
-                        var ps = vessel.transform.position + (transform.up * (float)distance);
+                        vessel.rigidbody.angularVelocity *= 0f;
+                        vessel.rigidbody.velocity *= 0f;
+                        var ps = vessel.transform.position + (transform.up*(float) distance);
                         part.vessel.SetPosition(ps);
-                    }                    
+                    }
+
                 }
             }
             catch (Exception ex)
