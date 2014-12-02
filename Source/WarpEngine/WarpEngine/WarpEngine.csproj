@@ -36,6 +36,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
@@ -46,6 +47,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ColorUtilities.cs" />
+    <Compile Include="ShipInfo.cs" />
     <Compile Include="USI_ModuleWarpEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

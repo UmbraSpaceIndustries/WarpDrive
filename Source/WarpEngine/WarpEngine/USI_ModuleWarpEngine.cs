@@ -6,22 +6,17 @@ using UnityEngine;
 
 namespace WarpEngine
 {
-    public class ShipInfo
-    {
-        public Part ShipPart { get; set; }
-        public float BreakingForce { get; set; }
-        public float BreakingTorque { get; set; }
-        public float CrashTolerance { get; set; }
-        public RigidbodyConstraints Constraints { get; set; }
-    }
     public class USI_ModuleWarpEngine : PartModule
     {
-        [KSPField(guiActive = true, guiName = "Status", guiActiveEditor = false)]
+        [KSPField(guiActive = true, guiName = "Warp Drive", guiActiveEditor = false)]
         public string status = "inactive";
 
         [KSPField]
         public string deployAnimationName = "Engage";
 
+        [KSPField]
+        public string unfoldAnimationName = "Deploy";
+        
         [KSPField]
         public string warpAnimationName = "WarpField";
 
@@ -49,16 +44,16 @@ namespace WarpEngine
         [KSPField]
         public float MinAltitude = 1f;
 
-        [KSPEvent(guiActive = true, active = true, guiActiveEditor = true, guiName = "Toggle Bubble Guide")]
+        [KSPEvent(guiActive = false, active = true, guiActiveEditor = true, guiName = "Toggle Bubble Guide", guiActiveUnfocused = false)]
         public void ToggleBubbleGuide()
         {
-            //Affects both the icon and the ship it turns out
             foreach (var gobj in GameObject.FindObjectsOfType<GameObject>())
             {
                 if(gobj.name == "EditorWarpBubble")
                     gobj.renderer.enabled = !gobj.renderer.enabled;
             }
         }
+
 
         public Animation DeployAnimation
         {
@@ -75,6 +70,23 @@ namespace WarpEngine
                 }
             }
         }
+
+        public Animation UnfoldAnimation
+        {
+            get
+            {
+                try
+                {
+                    return part.FindModelAnimators(unfoldAnimationName)[0];
+                }
+                catch (Exception)
+                {
+                    print("[WARP] ERROR IN GetUnfoldAnimation");
+                    return null;
+                }
+            }
+        }
+
 
         public Animation WarpAnimation
         {
@@ -107,10 +119,9 @@ namespace WarpEngine
             try
             {
                 DeployAnimation[deployAnimationName].layer = 3;
+                if(unfoldAnimationName != "")
+                    UnfoldAnimation[unfoldAnimationName].layer = 5;
                 WarpAnimation[warpAnimationName].layer = 4;
-                _state = state;
-                if (_state == StartState.Editor)
-                    return;
                 CheckBubbleDeployment(1000);
                 base.OnStart(state);
             }
@@ -159,7 +170,6 @@ namespace WarpEngine
                     vp.crashTolerance = Mathf.Infinity;
                 }
                 vessel.rigidbody.constraints &= RigidbodyConstraints.FreezeRotation;
-                FlightGlobals.overrideOrbit = true;
             }
 
             else
@@ -183,7 +193,21 @@ namespace WarpEngine
                     }
                     vessel.rigidbody.constraints &= ~RigidbodyConstraints.FreezeRotation;
                 }
-                FlightGlobals.overrideOrbit = false;
+            }
+        }
+
+        private bool CheckAltitude()
+        {
+            var altCutoff = FlightGlobals.currentMainBody.Radius*MinAltitude;
+            if (vessel.altitude < altCutoff)
+            {
+                status = "failsafe: " + Math.Round(altCutoff/1000, 0) + "km";
+                return false;
+            }
+            else
+            {
+                status = "inactive";
+                return true;
             }
         }
 
@@ -203,7 +227,7 @@ namespace WarpEngine
                 if (IsDeployed)
                 {
                     //Failsafe
-                    if (vessel.altitude < FlightGlobals.currentMainBody.Radius * MinAltitude)
+                    if (!CheckAltitude())
                     {
                         eModule.Shutdown();
                         return;
@@ -223,7 +247,7 @@ namespace WarpEngine
                         return;
                     }
 
-                    PlayWarpAnimation(1 + (eModule.currentThrottle * (WarpFactor * 3)));
+                    PlayWarpAnimation(eModule.currentThrottle);
 
                     //Start by adding in our subluminal speed which is exponential
                     double lowerThrottle = (Math.Min(eModule.currentThrottle, SUBLIGHT_THROTTLE) * SUBLIGHT_MULT);
@@ -265,19 +289,18 @@ namespace WarpEngine
                     double c = (distance * 50) / LIGHTSPEED;
                     status = String.Format("{1:n0} m/s [{0:0}%c]", c*100f, distance * 50);
 
-                    //We should only freeze position past minimum throttle.
                     if (eModule.currentThrottle > MinThrottle)
                     {
+                        var ps = vessel.transform.position + (transform.up*(float) distance);
+                        part.vessel.SetPosition(ps);
                         //Wiggling around is fatal
                         foreach (var p in vessel.parts)
                         {
                             p.Rigidbody.angularVelocity *= 0f;
                             p.Rigidbody.velocity *= 0f;
                         }
-                        vessel.rigidbody.angularVelocity *= 0f;
-                        vessel.rigidbody.velocity *= 0f;
-                        var ps = vessel.transform.position + (transform.up*(float) distance);
-                        part.vessel.SetPosition(ps);
+                        //vessel.rigidbody.angularVelocity *= 0f;
+                        //vessel.rigidbody.velocity *= 0f;
                     }
 
                 }
@@ -307,10 +330,21 @@ namespace WarpEngine
         {
             try
             {
+                WarpAnimation[warpAnimationName].speed = 1 + (speed * WarpFactor);
                 if (!WarpAnimation.IsPlaying(warpAnimationName))
                 {
-                    WarpAnimation[warpAnimationName].speed = speed;
                     WarpAnimation.Play(warpAnimationName);
+                }
+                //Set our color
+                foreach (var gobj in GameObject.FindGameObjectsWithTag("Icon_Hidden"))
+                {
+                    if (gobj.name == "Torus_001")
+                    {
+                        var rgb = ColorUtils.HSL2RGB(Math.Abs(speed - 1), 0.5, speed / 2);
+                        var c = new Color(rgb[0], rgb[1], rgb[2]);
+                        gobj.renderer.material.SetColor("_Color", c);
+
+                    }
                 }
             }
             catch (Exception)
@@ -344,14 +378,8 @@ namespace WarpEngine
         {
             try
             {
-                //Turn off guide if there
-                foreach (var gobj in GameObject.FindObjectsOfType<GameObject>())
-                {
-                    if (gobj.name == "EditorWarpBubble")
-                        gobj.renderer.enabled = false;
-                }
-
-               
+                print("CHECKING BUBBLE " + speed);
+                //Turn off guide if there              
                 if (IsDeployed)
                 {
                     SetDeployedState(speed);
@@ -359,7 +387,15 @@ namespace WarpEngine
                 else
                 {
                     SetRetractedState(-speed);
-                    status = "inactive";
+                    CheckAltitude();
+                }
+                if (_state != StartState.Editor)
+                {
+                    foreach (var gobj in GameObject.FindObjectsOfType<GameObject>())
+                    {
+                        if (gobj.name == "EditorWarpBubble")
+                            gobj.renderer.enabled = false;
+                    }
                 }
             }
             catch (Exception)
@@ -401,9 +437,16 @@ namespace WarpEngine
                 if (speed < 0)
                 {
                     DeployAnimation[deployAnimationName].time = DeployAnimation[deployAnimationName].length;
+                    if(unfoldAnimationName != "")
+                        UnfoldAnimation[unfoldAnimationName].time = UnfoldAnimation[unfoldAnimationName].length;
                 }
                 DeployAnimation[deployAnimationName].speed = speed;
                 DeployAnimation.Play(deployAnimationName);
+                if (unfoldAnimationName != "")
+                {
+                    UnfoldAnimation[unfoldAnimationName].speed = speed;
+                    UnfoldAnimation.Play(unfoldAnimationName);
+                }
             }
             catch (Exception)
             {
