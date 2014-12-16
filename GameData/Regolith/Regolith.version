@@ -1,11 +1,11 @@
 {
-     "NAME":"MKS",
-	 "URL":"https://raw.githubusercontent.com/BobPalmer/WarpDrive/master/GameData/UmbraSpaceIndustries/WarpDrive/WarpDrive.version"
-	 "DOWNLOAD":"https://github.com/BobPalmer/WarpDrive/releases"
+     "NAME":"Community Resource Pack",
+     "URL":"https://raw.githubusercontent.com/BobPalmer/Regolith/master/GameData/Regolith/Regolith.version",
+     "DOWNLOAD":"https://github.com/BobPalmer/Regolith/releases",
      "GITHUB":{
          "USERNAME":"BobPalmer",
-         "REPOSITORY":"WarpDrive",
-         "ALLOW_PRE_RELEASE":false,
+         "REPOSITORY":"Regolith",
+         "ALLOW_PRE_RELEASE":false
      },
      "VERSION":{
          "MAJOR":0,
@@ -20,9 +20,9 @@
      },
      "KSP_VERSION_MIN":{
          "MAJOR":0,
-         "MINOR":24,
-         "PATCH":2
-     }
+         "MINOR":90,
+         "PATCH":0
+     },
      "KSP_VERSION_MAX":{
          "MAJOR":0,
          "MINOR":90,
