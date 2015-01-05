@@ -294,13 +294,13 @@ namespace WarpEngine
                         var ps = vessel.transform.position + (transform.up*(float) distance);
                         part.vessel.SetPosition(ps);
                         //Wiggling around is fatal
-                        foreach (var p in vessel.parts)
-                        {
-                            p.Rigidbody.angularVelocity *= 0f;
-                            p.Rigidbody.velocity *= 0f;
-                        }
-                        //vessel.rigidbody.angularVelocity *= 0f;
-                        //vessel.rigidbody.velocity *= 0f;
+                        //foreach (var p in vessel.parts)
+                        //{
+                        //    p.Rigidbody.angularVelocity *= 0f;
+                        //    p.Rigidbody.velocity *= 0f;
+                        //}
+                        vessel.rigidbody.angularVelocity *= 0f;
+                        vessel.rigidbody.velocity *= 0f;
                     }
 
                 }
