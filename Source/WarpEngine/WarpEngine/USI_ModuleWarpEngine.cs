@@ -291,16 +291,18 @@ namespace WarpEngine
 
                     if (eModule.currentThrottle > MinThrottle)
                     {
-                        var ps = vessel.transform.position + (transform.up*(float) distance);
-                        part.vessel.SetPosition(ps);
-                        //Wiggling around is fatal
+                        // Translate through space on the back of a Kraken!
+						Vector3d ps = vessel.transform.position + (transform.up*(float) distance);
+						Krakensbane krakensbane = (Krakensbane)FindObjectOfType(typeof(Krakensbane));
+						krakensbane.setOffset(ps);
+                        //Wiggling around is fatal - shouldn't be necessary with krakensbane
                         //foreach (var p in vessel.parts)
                         //{
                         //    p.Rigidbody.angularVelocity *= 0f;
                         //    p.Rigidbody.velocity *= 0f;
                         //}
-                        vessel.rigidbody.angularVelocity *= 0f;
-                        vessel.rigidbody.velocity *= 0f;
+                        //vessel.rigidbody.angularVelocity *= 0f;
+                        //vessel.rigidbody.velocity *= 0f;
                     }
 
                 }
