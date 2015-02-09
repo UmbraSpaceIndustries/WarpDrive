@@ -375,7 +375,6 @@ namespace WarpEngine
                 print("[WARP] ERROR IN DecoupleBubbleParts");
             }
         }
-
         private void CheckBubbleDeployment(int speed)
         {
             try
@@ -405,7 +404,6 @@ namespace WarpEngine
                 print("[WARP] ERROR IN CheckBubbleDeployment");
             }
         }
-
         private void SetRetractedState(int speed)
         {
             try
@@ -418,7 +416,6 @@ namespace WarpEngine
                 print("[WARP] ERROR IN SetRetractedState");
             }
         }
-
         private void SetDeployedState(int speed)
         {
             try
