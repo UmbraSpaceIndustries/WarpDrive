@@ -47,11 +47,10 @@ namespace WarpEngine
         [KSPEvent(guiActive = false, active = true, guiActiveEditor = true, guiName = "Toggle Bubble Guide", guiActiveUnfocused = false)]
         public void ToggleBubbleGuide()
         {
-            foreach (var gobj in GameObject.FindObjectsOfType<GameObject>())
-            {
-                if(gobj.name == "EditorWarpBubble")
-                    gobj.renderer.enabled = !gobj.renderer.enabled;
-            }
+            var gobj = FindEditorWarpBubble();
+
+            if (gobj != null)
+                gobj.renderer.enabled = !gobj.renderer.enabled;
         }
 
 
@@ -198,17 +197,19 @@ namespace WarpEngine
 
         private bool CheckAltitude()
         {
-            var altCutoff = FlightGlobals.currentMainBody.Radius*MinAltitude;
-            if (vessel.altitude < altCutoff)
+            status = "inactive";
+
+            if (FlightGlobals.currentMainBody != null)
             {
-                status = "failsafe: " + Math.Round(altCutoff/1000, 0) + "km";
-                return false;
+                var altCutoff = FlightGlobals.currentMainBody.Radius*MinAltitude;
+                if (vessel.altitude < altCutoff)
+                {
+                    status = "failsafe: " + Math.Round(altCutoff/1000, 0) + "km";
+                    return false;
+                }
             }
-            else
-            {
-                status = "inactive";
-                return true;
-            }
+
+            return true;
         }
 
         public void FixedUpdate()
@@ -375,7 +376,6 @@ namespace WarpEngine
                 print("[WARP] ERROR IN DecoupleBubbleParts");
             }
         }
-
         private void CheckBubbleDeployment(int speed)
         {
             try
@@ -393,17 +393,27 @@ namespace WarpEngine
                 }
                 if (_state != StartState.Editor)
                 {
-                    foreach (var gobj in GameObject.FindObjectsOfType<GameObject>())
-                    {
-                        if (gobj.name == "EditorWarpBubble")
-                            gobj.renderer.enabled = false;
-                    }
+                    GameObject gobj = FindEditorWarpBubble();
+
+                    if (gobj != null)
+                        gobj.renderer.enabled = false;
                 }
             }
             catch (Exception)
             {
                 print("[WARP] ERROR IN CheckBubbleDeployment");
             }
+        }
+
+        private GameObject FindEditorWarpBubble()
+        {
+            foreach (var gobj in GameObject.FindObjectsOfType<GameObject>())
+            {
+                if (gobj.name == "EditorWarpBubble" && gobj.renderer != null)
+                    return gobj;
+            }
+
+            return null;
         }
 
         private void SetRetractedState(int speed)
@@ -418,7 +428,6 @@ namespace WarpEngine
                 print("[WARP] ERROR IN SetRetractedState");
             }
         }
-
         private void SetDeployedState(int speed)
         {
             try
