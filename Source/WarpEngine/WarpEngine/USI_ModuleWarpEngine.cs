@@ -46,7 +46,7 @@ namespace WarpEngine
 
 		[KSPField(guiName = "Conservation", isPersistant = true, guiActiveEditor = true, guiActive = false)]
 		[UI_Toggle(disabledText = "Velocity", enabledText = "Angular Momentum")]
-		protected bool AMConservationMode = true;
+		protected bool AMConservationMode = false;
 		[KSPField(guiName = "Conservation", guiActiveEditor = false, guiActive = true)]
 		public string ConservationMode;
 
