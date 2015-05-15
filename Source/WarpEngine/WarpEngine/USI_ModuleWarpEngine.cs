@@ -255,10 +255,8 @@ namespace WarpEngine
 						return;
 					}
 
-					//Snip partsx
+					//Snip parts
 					DecoupleBubbleParts();
-					//Other ships -isn't working for some reason,  throwing errors to log
-					 DestroyNearbyShips();
 
 					//OH NO FLAMEOUT!
 					if (eModule.flameout)
@@ -552,25 +550,6 @@ namespace WarpEngine
 		}
 
 
-
-		private void DestroyNearbyShips()
-		{
-			try
-			{
-				var ships = GetNearbyVessels(DisruptRange, false);
-				foreach (var s in ships)
-				{
-					foreach (var p in s.parts)
-					{
-						p.explode();
-					}
-				}
-			}
-			catch (Exception)
-			{
-				print("[WARP] ERROR IN DestroyNearbyShips");
-			}
-		}
 
 		private List<Vessel> GetNearbyVessels(int range, bool includeSelf)
 		{
