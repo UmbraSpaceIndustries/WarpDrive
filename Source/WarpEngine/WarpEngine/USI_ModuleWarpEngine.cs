@@ -59,7 +59,7 @@ namespace WarpEngine
 
 		}
 
-
+	    private GameObject editorBubble;
 
 		public Animation DeployAnimation
 		{
@@ -146,9 +146,24 @@ namespace WarpEngine
 			}
 		}
 
+	    private ModuleEngines eModule;
+	    private GameObject warpBubble;
 
+	    public override void OnAwake()
+	    {
+            eModule = part.FindModuleImplementing<ModuleEngines>();
+            editorBubble = FindEditorWarpBubble();
 
-		public override void OnLoad(ConfigNode node)
+            foreach (var gobj in GameObject.FindGameObjectsWithTag("Icon_Hidden"))
+            {
+                if (gobj.name == "Torus_001")
+                {
+                    warpBubble = gobj;
+                }
+            }        
+        }
+
+	    public override void OnLoad(ConfigNode node)
 		{
 			try
 			{
@@ -238,7 +253,6 @@ namespace WarpEngine
 			try
 			{
 				if (vessel == null || _state == StartState.Editor) return;
-				var eModule = part.FindModuleImplementing<ModuleEngines>();
 				if (IsDeployed != eModule.getIgnitionState)
 				{
 					IsDeployed = eModule.getIgnitionState;
@@ -308,6 +322,7 @@ namespace WarpEngine
 
 					double c = (distance * 50) / LIGHTSPEED;
 					status = String.Format("{1:n0} m/s [{0:0}%c]", c*100f, distance * 50);
+
 					if (eModule.currentThrottle > MinThrottle)
 					{
 						// Translate through space on the back of a Kraken!
@@ -421,16 +436,10 @@ namespace WarpEngine
 					WarpAnimation.Play(warpAnimationName);
 				}
 				//Set our color
-				foreach (var gobj in GameObject.FindGameObjectsWithTag("Icon_Hidden"))
-				{
-					if (gobj.name == "Torus_001")
-					{
-						var rgb = ColorUtils.HSL2RGB(Math.Abs(speed - 1), 0.5, speed / 2);
-						var c = new Color(rgb[0], rgb[1], rgb[2]);
-						gobj.renderer.material.SetColor("_Color", c);
+                var rgb = ColorUtils.HSL2RGB(Math.Abs(speed - 1), 0.5, speed / 2);
+                var c = new Color(rgb[0], rgb[1], rgb[2]);
+                warpBubble.renderer.material.SetColor("_Color", c);
 
-					}
-				}
 			}
 			catch (Exception)
 			{
@@ -475,9 +484,8 @@ namespace WarpEngine
 				}
 				if (_state != StartState.Editor)
 				{
-					GameObject gobj = FindEditorWarpBubble();
-					if (gobj != null)
-						gobj.renderer.enabled = false;
+					if (editorBubble != null)
+						editorBubble.renderer.enabled = false;
 				}
 			}
 			catch (Exception)
@@ -548,8 +556,6 @@ namespace WarpEngine
 				print("[WARP] ERROR IN PlayDeployAnimation");
 			}
 		}
-
-
 
 		private List<Vessel> GetNearbyVessels(int range, bool includeSelf)
 		{
