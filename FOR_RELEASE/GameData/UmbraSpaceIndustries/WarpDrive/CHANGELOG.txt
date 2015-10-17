@@ -3,3 +3,4 @@
 Recompile for KSP 1.0.4
 Reduced thrust of the xenon thrusters
 dramatically increased cost
+

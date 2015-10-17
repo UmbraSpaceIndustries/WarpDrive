@@ -1,11 +1,11 @@
 {
      "NAME":"USI Alcubierre Drive",
-	 "URL":"https://raw.githubusercontent.com/BobPalmer/WarpDrive/master/GameData/UmbraSpaceIndustries/WarpDrive/WarpDrive.version"
-	 "DOWNLOAD":"https://github.com/BobPalmer/WarpDrive/releases"
+	 "URL":"https://raw.githubusercontent.com/BobPalmer/WarpDrive/master/GameData/UmbraSpaceIndustries/WarpDrive/WarpDrive.version",
+	 "DOWNLOAD":"https://github.com/BobPalmer/WarpDrive/releases",
      "GITHUB":{
          "USERNAME":"BobPalmer",
          "REPOSITORY":"WarpDrive",
-         "ALLOW_PRE_RELEASE":false,
+         "ALLOW_PRE_RELEASE":false
      },
      "VERSION":{
          "MAJOR":0,
@@ -22,7 +22,7 @@
          "MAJOR":1,
          "MINOR":0,
          "PATCH":0
-     }
+     },
      "KSP_VERSION_MAX":{
          "MAJOR":1,
          "MINOR":0,
