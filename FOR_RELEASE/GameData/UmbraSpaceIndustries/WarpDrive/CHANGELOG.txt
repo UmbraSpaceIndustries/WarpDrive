@@ -1,3 +1,11 @@
+0.3.2 - 2016.01.18
+------------------
+Fixed an issue with warp drive performance
+
+0.3.1 - 2015.11.09
+------------------
+Recompile for KSP 1.0.5
+
 0.3.0 - 2015.10.16
 -------------------
 Recompile for KSP 1.0.4

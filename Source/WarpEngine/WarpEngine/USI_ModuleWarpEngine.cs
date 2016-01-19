@@ -148,10 +148,11 @@ namespace WarpEngine
 
 	    private ModuleEngines eModule;
 	    private GameObject warpBubble;
-
+	    private Krakensbane krakensbane;
 	    public override void OnAwake()
 	    {
             eModule = part.FindModuleImplementing<ModuleEngines>();
+            krakensbane = (Krakensbane)FindObjectOfType(typeof(Krakensbane));
             editorBubble = FindEditorWarpBubble();
 
             foreach (var gobj in GameObject.FindGameObjectsWithTag("Icon_Hidden"))
@@ -190,7 +191,8 @@ namespace WarpEngine
 		{
 			if (stiffenJoints)
 			{
-				//Stiffen Joints
+                print("Stiffening");
+                //Stiffen Joints
 				_shipParts = new List<ShipInfo>();
 				foreach (var vp in vessel.parts)
 				{
@@ -212,7 +214,8 @@ namespace WarpEngine
 
 			else
 			{
-				//Stop vessel
+			    print("Unstiffening");
+                //Stop vessel
 				vessel.rigidbody.AddTorque(-vessel.rigidbody.angularVelocity);
 				//Reset part state
 				if (_shipParts != null)
@@ -252,36 +255,39 @@ namespace WarpEngine
 		{
 			try
 			{
-				if (vessel == null || _state == StartState.Editor) return;
-				if (IsDeployed != eModule.getIgnitionState)
-				{
-					IsDeployed = eModule.getIgnitionState;
-					CheckBubbleDeployment(3);
-					SetPartState(eModule.getIgnitionState);
-				}
+				if (vessel == null || _state == StartState.Editor) 
+                    return;
+
+                if (IsDeployed != eModule.getIgnitionState)
+                {
+                    IsDeployed = eModule.getIgnitionState;
+                    CheckBubbleDeployment(3);
+                    SetPartState(eModule.getIgnitionState);
+                }
 
 				if (IsDeployed)
 				{
 					//Failsafe
-					if (!CheckAltitude())
-					{
-						eModule.Shutdown();
-						return;
-					}
+                    if (!CheckAltitude())
+                    {
+                        eModule.Shutdown();
+                        return;
+                    }
 
-					//Snip parts
-					DecoupleBubbleParts();
+                    //Snip parts
+                    DecoupleBubbleParts();
 
-					//OH NO FLAMEOUT!
-					if (eModule.flameout)
-					{
-						BubbleCollapse(eModule.currentThrottle);
-						FlightInputHandler.state.mainThrottle = 0;
-						IsDeployed = false;
-						return;
-					}
+                    //OH NO FLAMEOUT!
+                    if (eModule.flameout)
+                    {
+                        print("Flameout");
+                        BubbleCollapse(eModule.currentThrottle);
+                        FlightInputHandler.state.mainThrottle = 0;
+                        IsDeployed = false;
+                        return;
+                    }
 
-					PlayWarpAnimation(eModule.currentThrottle);
+                    PlayWarpAnimation(eModule.currentThrottle);
 
 					//Start by adding in our subluminal speed which is exponential
 					double lowerThrottle = (Math.Min(eModule.currentThrottle, SUBLIGHT_THROTTLE) * SUBLIGHT_MULT);
@@ -327,7 +333,6 @@ namespace WarpEngine
 					{
 						// Translate through space on the back of a Kraken!
 						Vector3d ps = vessel.transform.position + (transform.up*(float) distance);
-						Krakensbane krakensbane = (Krakensbane)FindObjectOfType(typeof(Krakensbane));
 						krakensbane.setOffset(ps);
 						//AngularMomentum Block
 						if (AMConservationMode == true)
