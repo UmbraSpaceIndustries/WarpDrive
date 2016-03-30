@@ -55,7 +55,7 @@ namespace WarpEngine
 		{
 			var gobj = FindEditorWarpBubble();
 			if (gobj != null)
-				gobj.renderer.enabled = !gobj.renderer.enabled;
+				gobj.GetComponent<Renderer>().enabled = !gobj.GetComponent<Renderer>().enabled;
 
 		}
 
@@ -203,20 +203,20 @@ namespace WarpEngine
 							BreakingForce = vp.breakingForce,
 							BreakingTorque = vp.breakingTorque,
 							CrashTolerance = vp.crashTolerance,
-							Constraints = vp.rigidbody.constraints
+							Constraints = vp.GetComponent<Rigidbody>().constraints
 						});
 					vp.breakingForce = Mathf.Infinity;
 					vp.breakingTorque = Mathf.Infinity;
 					vp.crashTolerance = Mathf.Infinity;
 				}
-				vessel.rigidbody.constraints &= RigidbodyConstraints.FreezeRotation;
+				vessel.GetComponent<Rigidbody>().constraints &= RigidbodyConstraints.FreezeRotation;
 			}
 
 			else
 			{
 			    print("Unstiffening");
                 //Stop vessel
-				vessel.rigidbody.AddTorque(-vessel.rigidbody.angularVelocity);
+				vessel.GetComponent<Rigidbody>().AddTorque(-vessel.GetComponent<Rigidbody>().angularVelocity);
 				//Reset part state
 				if (_shipParts != null)
 				{
@@ -225,14 +225,14 @@ namespace WarpEngine
 						if (vessel.parts.Contains(sp.ShipPart))
 						{
 							print("[WARP] Relaxing " + sp.ShipPart.name);
-							sp.ShipPart.rigidbody.AddTorque(-sp.ShipPart.rigidbody.angularVelocity);
+							sp.ShipPart.GetComponent<Rigidbody>().AddTorque(-sp.ShipPart.GetComponent<Rigidbody>().angularVelocity);
 							sp.ShipPart.breakingForce = sp.BreakingForce;
 							sp.ShipPart.breakingTorque = sp.BreakingTorque;
 							sp.ShipPart.crashTolerance = sp.CrashTolerance;
-							sp.ShipPart.rigidbody.constraints = sp.Constraints;
+							sp.ShipPart.GetComponent<Rigidbody>().constraints = sp.Constraints;
 						}
 					}
-					vessel.rigidbody.constraints &= ~RigidbodyConstraints.FreezeRotation;
+					vessel.GetComponent<Rigidbody>().constraints &= ~RigidbodyConstraints.FreezeRotation;
 				}
 			}
 		}
@@ -443,7 +443,7 @@ namespace WarpEngine
 				//Set our color
                 var rgb = ColorUtils.HSL2RGB(Math.Abs(speed - 1), 0.5, speed / 2);
                 var c = new Color(rgb[0], rgb[1], rgb[2]);
-                warpBubble.renderer.material.SetColor("_Color", c);
+                warpBubble.GetComponent<Renderer>().material.SetColor("_Color", c);
 
 			}
 			catch (Exception)
@@ -490,7 +490,7 @@ namespace WarpEngine
 				if (_state != StartState.Editor)
 				{
 					if (editorBubble != null)
-						editorBubble.renderer.enabled = false;
+						editorBubble.GetComponent<Renderer>().enabled = false;
 				}
 			}
 			catch (Exception)
@@ -502,7 +502,7 @@ namespace WarpEngine
 		{
 			foreach (var gobj in GameObject.FindObjectsOfType<GameObject>())
 			{
-				if (gobj.name == "EditorWarpBubble" && gobj.renderer != null)
+				if (gobj.name == "EditorWarpBubble" && gobj.GetComponent<Renderer>() != null)
 					return gobj;
 			}
 
