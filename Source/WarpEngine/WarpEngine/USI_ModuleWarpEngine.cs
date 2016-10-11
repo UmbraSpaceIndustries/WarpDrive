@@ -169,7 +169,6 @@ namespace WarpEngine
 			try
 			{
 				if (_state == StartState.Editor) return;
-				part.force_activate();
 				CheckBubbleDeployment(1000);
 				base.OnLoad(node);
 				if (AMConservationMode == true)
@@ -333,7 +332,9 @@ namespace WarpEngine
 					{
 						// Translate through space on the back of a Kraken!
 						Vector3d ps = vessel.transform.position + (transform.up*(float) distance);
-						krakensbane.setOffset(ps);
+						//krakensbane.setOffset(ps);
+                        FloatingOrigin.SetOutOfFrameOffset(ps);
+
 						//AngularMomentum Block
 						if (AMConservationMode == true)
 						{
