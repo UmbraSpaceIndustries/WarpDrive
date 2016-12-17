@@ -1,3 +1,11 @@
+0.5.2 - (KSP 1.2.2)
+-------------------
+Updates for KSP 1.2.2
+
+0.5.1 - (KSP 1.2.1)
+-------------------
+Dependency Updates
+
 0.5.0 - (KSP 1.2)
 ------------------
 Fixed an issue where the warp drive was auto-activating after game load
