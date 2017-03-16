@@ -115,7 +115,6 @@ namespace WarpEngine
 		private const int SUBLIGHT_MULT = 40;
 		private const int SUBLIGHT_POWER = 5;
 		private const double SUBLIGHT_THROTTLE = .3d;
-		private StartState _state;
 		private double CurrentSpeed;
 		private List<ShipInfo> _shipParts;
 		// Angular Momentum Calculation Variables
@@ -151,6 +150,11 @@ namespace WarpEngine
 	    private Krakensbane krakensbane;
 	    public override void OnAwake()
 	    {
+	        SetupDrive();
+	    }
+
+	    private void SetupDrive()
+	    {
             eModule = part.FindModuleImplementing<ModuleEngines>();
             krakensbane = (Krakensbane)FindObjectOfType(typeof(Krakensbane));
             editorBubble = FindEditorWarpBubble();
@@ -161,16 +165,18 @@ namespace WarpEngine
                 {
                     warpBubble = gobj;
                 }
-            }        
+            }
         }
 
 	    public override void OnLoad(ConfigNode node)
 		{
 			try
 			{
-				if (_state == StartState.Editor) return;
-				CheckBubbleDeployment(1000);
-				base.OnLoad(node);
+				if (!HighLogic.LoadedSceneIsFlight)
+                    return;
+
+
+                CheckBubbleDeployment(1000);
 				if (AMConservationMode == true)
 				{
 					ConservationMode = "A.Momentum";
@@ -254,8 +260,11 @@ namespace WarpEngine
 		{
 			try
 			{
-				if (vessel == null || _state == StartState.Editor) 
+				if (!HighLogic.LoadedSceneIsFlight) 
                     return;
+
+                if(eModule == null)
+                    SetupDrive();
 
                 if (IsDeployed != eModule.getIgnitionState)
                 {
@@ -488,7 +497,7 @@ namespace WarpEngine
 					SetRetractedState(-speed);
 					CheckAltitude();
 				}
-				if (_state != StartState.Editor)
+				if (!HighLogic.LoadedSceneIsEditor)
 				{
 					if (editorBubble != null)
 						editorBubble.GetComponent<Renderer>().enabled = false;
