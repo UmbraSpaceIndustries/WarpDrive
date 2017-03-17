@@ -1,4 +1,4 @@
-0.5.5 - 2017.03.10
+0.5.5 - 2017.03.17
 -------------------
 Fixed a potential issue with initializing the warp drive
 
