@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace WarpEngine
 {
-	public class USI_ModuleWarpEngine : PartModule
+    public class USI_ModuleWarpEngine : PartModule
 	{
 		[KSPField(guiActive = true, guiName = "Warp Drive", guiActiveEditor = false)]
 		public string status = "inactive";
