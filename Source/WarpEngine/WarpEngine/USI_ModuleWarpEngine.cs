@@ -147,7 +147,7 @@ namespace WarpEngine
 
 	    private ModuleEngines eModule;
 	    private GameObject warpBubble;
-	    private Krakensbane krakensbane;
+	    // private Krakensbane krakensbane;
 	    public override void OnAwake()
 	    {
 	        SetupDrive();
@@ -156,7 +156,7 @@ namespace WarpEngine
 	    private void SetupDrive()
 	    {
             eModule = part.FindModuleImplementing<ModuleEngines>();
-            krakensbane = (Krakensbane)FindObjectOfType(typeof(Krakensbane));
+           // krakensbane = (Krakensbane)FindObjectOfType(typeof(Krakensbane));
             editorBubble = FindEditorWarpBubble();
 
             foreach (var gobj in GameObject.FindGameObjectsWithTag("Icon_Hidden"))
@@ -366,34 +366,35 @@ namespace WarpEngine
 		{
 			if (PreviousBodyName == FlightGlobals.currentMainBody)
 			{
-				if ((FlightGlobals.ActiveVessel.orbit.eccentricity > 1) && (ElipMode == 0)) //For Hyperbolic Orbits. Conserve angular momentum by making orbit.h constant. GMp=h^2, so semi-latus rectum must be constant as well.).
+                Krakensbane.ResetVelocityFrame(true);
+                if ((FlightGlobals.ActiveVessel.orbit.eccentricity >= 1) && (ElipMode == 0)) //For Hyperbolic Orbits. Conserve angular momentum by making orbit.h constant. GMp=h^2, so semi-latus rectum must be constant as well.).
 				{
 				Speed = Math.Sqrt(FlightGlobals.ActiveVessel.mainBody.gravParameter*((2/FlightGlobals.ActiveVessel.orbit.radius)-((SemiLatusOriginal*FlightGlobals.ActiveVessel.mainBody.gravParameter)/(FlightGlobals.ActiveVessel.orbit.semiMajorAxis * OriginalMomentumSqr))));
-					if (Vector3d.Magnitude (Krakensbane.GetFrameVelocity ()) > 0) 
-					{
-						var VelocityOffset = (TravelDirection * Speed) - Krakensbane.GetFrameVelocity ();
-						FlightGlobals.ActiveVessel.ChangeWorldVelocity (VelocityOffset);
-					}
-					else 
-					{
+//					if (Vector3d.Magnitude (Krakensbane.GetFrameVelocity ()) > 0) 
+//					{
+//						var VelocityOffset = (TravelDirection * Speed) - Krakensbane.GetFrameVelocity ();
+//						FlightGlobals.ActiveVessel.ChangeWorldVelocity (VelocityOffset);
+//					}
+//					else 
+//					{
 						var VelocityOffset = (TravelDirection * Speed);
 						FlightGlobals.ActiveVessel.SetWorldVelocity (VelocityOffset);
-					}
+//					}
 				}
-				if ((FlightGlobals.ActiveVessel.orbit.eccentricity <= 1) && (ElipMode == 1)) // For Elliptical Orbits. Conserve Angular Momentum directly by altering state vectors
+				if ((FlightGlobals.ActiveVessel.orbit.eccentricity < 1) && (ElipMode == 1)) // For Elliptical Orbits. Conserve Angular Momentum directly by altering state vectors
 				{
 					Speed = OriginalSpeed * (OriginalFrameTrueRadius / (FlightGlobals.ActiveVessel.orbit.radius));
-					if (Vector3d.Magnitude (Krakensbane.GetFrameVelocity ()) > 0) 
-					{
-						var VelocityOffset = (TravelDirection * Speed) - Krakensbane.GetFrameVelocity ();
-						FlightGlobals.ActiveVessel.ChangeWorldVelocity (VelocityOffset);
-					}
-					if (Vector3d.Magnitude (Krakensbane.GetFrameVelocity ()) == 0) 
-					{
+//					if (Vector3d.Magnitude (Krakensbane.GetFrameVelocity ()) > 0) 
+//					{
+//						var VelocityOffset = (TravelDirection * Speed) - Krakensbane.GetFrameVelocity ();
+//						FlightGlobals.ActiveVessel.ChangeWorldVelocity (VelocityOffset);
+//					}
+//					if (Vector3d.Magnitude (Krakensbane.GetFrameVelocity ()) == 0) 
+//					{
 						var VelocityOffset = (TravelDirection * Speed);
 						FlightGlobals.ActiveVessel.SetWorldVelocity (VelocityOffset);
-					}
-					if (((OriginalFrameTrueRadius / FlightGlobals.ActiveVessel.orbit.radius) <= 0.55) || ((OriginalFrameTrueRadius / FlightGlobals.ActiveVessel.orbit.radius) <= 1.75)) // re-set variables when ratio between current ratio and original gets too far from 1
+//					}
+					if (((OriginalFrameTrueRadius / FlightGlobals.ActiveVessel.orbit.radius) <= 0.75) || ((OriginalFrameTrueRadius / FlightGlobals.ActiveVessel.orbit.radius) <= 1.25)) // re-set variables when ratio between current ratio and original gets too far from 1
 					{
 						OriginalSpeed = Vector3d.Magnitude (FlightGlobals.ActiveVessel.orbit.GetRelativeVel ());
 						OriginalFrameTrueRadius = FlightGlobals.ActiveVessel.orbit.radius;
