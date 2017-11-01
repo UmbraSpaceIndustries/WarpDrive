@@ -42,9 +42,15 @@ namespace WarpEngine
 		public int BubbleSize = 20;
 
 		[KSPField]
-		public float MinAltitude = 1f;
+		public double MinAltitude = 1d;
 
-		[KSPField(guiName = "Conservation", isPersistant = true, guiActiveEditor = true, guiActive = false)]
+        [KSPField]
+        public double GravFactor = 0.95d;
+
+        [KSPField]
+        public double BrakeFalloff = 0.9d;
+
+        [KSPField(guiName = "Conservation", isPersistant = true, guiActiveEditor = true, guiActive = false)]
 		[UI_Toggle(disabledText = "Velocity", enabledText = "Angular Momentum")]
 		protected bool AMConservationMode = false;
 		[KSPField(guiName = "Conservation", guiActiveEditor = false, guiActive = true)]
@@ -115,8 +121,9 @@ namespace WarpEngine
 		private const int SUBLIGHT_MULT = 40;
 		private const int SUBLIGHT_POWER = 5;
 		private const double SUBLIGHT_THROTTLE = .3d;
-		private double CurrentSpeed;
+ 		//private double CurrentSpeed;
 		private List<ShipInfo> _shipParts;
+        private double GravityBrakes;
 		// Angular Momentum Calculation Variables
 		private Vector3d TravelDirection;
 		private double Speed;
@@ -147,7 +154,6 @@ namespace WarpEngine
 
 	    private ModuleEngines eModule;
 	    private GameObject warpBubble;
-	    // private Krakensbane krakensbane;
 	    public override void OnAwake()
 	    {
 	        SetupDrive();
@@ -156,7 +162,6 @@ namespace WarpEngine
 	    private void SetupDrive()
 	    {
             eModule = part.FindModuleImplementing<ModuleEngines>();
-           // krakensbane = (Krakensbane)FindObjectOfType(typeof(Krakensbane));
             editorBubble = FindEditorWarpBubble();
 
             foreach (var gobj in GameObject.FindGameObjectsWithTag("Icon_Hidden"))
@@ -247,8 +252,9 @@ namespace WarpEngine
 			status = "inactive";
 			if (FlightGlobals.currentMainBody != null) 
 			{
-				var altCutoff = FlightGlobals.currentMainBody.Radius * MinAltitude;
-				if (vessel.altitude < altCutoff) {
+				var altCutoff = FlightGlobals.ActiveVessel.mainBody.Radius * MinAltitude;
+				if (FlightGlobals.ActiveVessel.altitude < altCutoff)
+                {
 					status = "failsafe: " + Math.Round (altCutoff / 1000, 0) + "km";
 					return false;
 				}
@@ -256,7 +262,27 @@ namespace WarpEngine
 			return true;
 		}
 
-		public void FixedUpdate()
+        //Maximum warp reduces as one gets closer to a planetary body - limited by SOI so physics ticks are an issue. 
+        private void GravityBrake()
+        {
+            var cutoffRadius = GravFactor * FlightGlobals.ActiveVessel.mainBody.Radius;
+            var currentbody = FlightGlobals.ActiveVessel.mainBody;
+            GravityBrakes = ((FlightGlobals.ActiveVessel.mainBody.gravParameter / Math.Pow(FlightGlobals.ActiveVessel.orbit.radius, BrakeFalloff)) / (FlightGlobals.ActiveVessel.mainBody.gravParameter / Math.Pow(cutoffRadius, BrakeFalloff)));
+            if (currentbody != FlightGlobals.Bodies.FirstOrDefault(x => x.referenceBody == x.referenceBody))
+            {
+                var nextbody = FlightGlobals.ActiveVessel.mainBody.orbit.referenceBody;
+                while (nextbody != FlightGlobals.Bodies.FirstOrDefault(x => x.referenceBody == x.referenceBody))
+                {
+                    cutoffRadius = GravFactor * nextbody.Radius;
+                    GravityBrakes = GravityBrakes + (((nextbody.gravParameter / Math.Pow(currentbody.orbit.radius, BrakeFalloff)) / (nextbody.gravParameter / Math.Pow(cutoffRadius, BrakeFalloff))));
+                    currentbody = nextbody;
+                    nextbody = nextbody.orbit.referenceBody;
+                }
+            }
+            GravityBrakes = 1 - GravityBrakes;
+        }
+
+        public void FixedUpdate()
 		{
 			try
 			{
@@ -296,16 +322,16 @@ namespace WarpEngine
                     }
 
                     PlayWarpAnimation(eModule.currentThrottle);
-
-					//Start by adding in our subluminal speed which is exponential
-					double lowerThrottle = (Math.Min(eModule.currentThrottle, SUBLIGHT_THROTTLE) * SUBLIGHT_MULT);
+                    GravityBrake();
+                    //Start by adding in our subluminal speed which is exponential
+                    double lowerThrottle = (Math.Min(eModule.currentThrottle, SUBLIGHT_THROTTLE) * SUBLIGHT_MULT);
 					double distance = Math.Pow(lowerThrottle, SUBLIGHT_POWER);
 
 					//Then if throttle is over our threshold, go linear
 					if (eModule.currentThrottle > SUBLIGHT_THROTTLE)
 					{
-						//How much headroon do we have
-						double maxSpeed = (LIGHTSPEED/50*WarpFactor) - distance;
+                        //How much headroom do we have
+                        double maxSpeed = ((LIGHTSPEED*WarpFactor) - distance);
 						//How much of this can we use?
 						var upperThrottle = eModule.currentThrottle - SUBLIGHT_THROTTLE;
 						//How much of this headroom have we used?
@@ -317,30 +343,27 @@ namespace WarpEngine
 
 
 					//Take into acount safe accelleration/decelleration
-					if (distance > CurrentSpeed + Math.Pow(10,MaxAccelleration))
-						distance = CurrentSpeed + Math.Pow(10, MaxAccelleration);
-					if (distance < CurrentSpeed - Math.Pow(10, MaxAccelleration))
-						distance = CurrentSpeed - Math.Pow(10, MaxAccelleration);
-					CurrentSpeed = distance;
+					//if (distance > CurrentSpeed + Math.Pow(10,MaxAccelleration))
+					//	distance = CurrentSpeed + Math.Pow(10, MaxAccelleration);
+					//if (distance < CurrentSpeed - Math.Pow(10, MaxAccelleration))
+					//	distance = CurrentSpeed - Math.Pow(10, MaxAccelleration);
+					//CurrentSpeed = distance;
 
-					if (distance > 1000)
-					{
+					//if (distance > 1000)
+					//{
 						//Let's see if we can get rid of precision issues with distance.
-						Int32 precision = Math.Round(distance, 0).ToString().Length - 1;
-						if (precision > MaxAccelleration) precision = MaxAccelleration;
-						var magnitude = Math.Round((distance / Math.Pow(10, precision)),0);
-						var jumpDistance = Math.Pow(10,precision) * magnitude;
-						distance = jumpDistance;
-					}
-
-
-					double c = (distance * 50) / LIGHTSPEED;
-					status = String.Format("{1:n0} m/s [{0:0}%c]", c*100f, distance * 50);
+					//	Int32 precision = Math.Round(distance, 0).ToString().Length - 1;
+					//	if (precision > MaxAccelleration) precision = MaxAccelleration;
+					//	var magnitude = Math.Round((distance / Math.Pow(10, precision)),0);
+					//	var jumpDistance = Math.Pow(10,precision) * magnitude;
+					//	distance = jumpDistance;
+					//}
 
 					if (eModule.currentThrottle > MinThrottle)
 					{
-						// Translate through space on the back of a Kraken!
-						Vector3d ps = vessel.transform.position + (transform.up*(float) distance);
+                        // Translate through space on the back of a Kraken!
+                        distance = Math.Pow(distance,GravityBrakes) * TimeWarp.fixedDeltaTime;
+						Vector3d ps = FlightGlobals.ActiveVessel.transform.position + (transform.up*(float) distance);
 						//krakensbane.setOffset(ps);
                         FloatingOrigin.SetOutOfFrameOffset(ps);
 
@@ -354,7 +377,11 @@ namespace WarpEngine
 					{
 						SetAMStartStateVars();
 					}
-				}
+                    double speedcdisp = (distance) / (LIGHTSPEED * TimeWarp.fixedDeltaTime);
+                    double maxspeeddisp = Math.Pow(LIGHTSPEED * WarpFactor, GravityBrakes) / LIGHTSPEED;
+
+                    status = String.Format("{0:g4}c [Max {1:f4}c]", speedcdisp, maxspeeddisp);
+                }
 			}
 			catch (Exception ex)
 			{
@@ -364,45 +391,30 @@ namespace WarpEngine
 
 		private void ApplyAngularMomentum()
 		{
-			if (PreviousBodyName == FlightGlobals.currentMainBody)
+            FlightGlobals.ActiveVessel.IgnoreGForces(2);
+			if (PreviousBodyName == FlightGlobals.ActiveVessel.mainBody)
 			{
                 Krakensbane.ResetVelocityFrame(true);
                 if ((FlightGlobals.ActiveVessel.orbit.eccentricity >= 1) && (ElipMode == 0)) //For Hyperbolic Orbits. Conserve angular momentum by making orbit.h constant. GMp=h^2, so semi-latus rectum must be constant as well.).
 				{
 				Speed = Math.Sqrt(FlightGlobals.ActiveVessel.mainBody.gravParameter*((2/FlightGlobals.ActiveVessel.orbit.radius)-((SemiLatusOriginal*FlightGlobals.ActiveVessel.mainBody.gravParameter)/(FlightGlobals.ActiveVessel.orbit.semiMajorAxis * OriginalMomentumSqr))));
-//					if (Vector3d.Magnitude (Krakensbane.GetFrameVelocity ()) > 0) 
-//					{
-//						var VelocityOffset = (TravelDirection * Speed) - Krakensbane.GetFrameVelocity ();
-//						FlightGlobals.ActiveVessel.ChangeWorldVelocity (VelocityOffset);
-//					}
-//					else 
-//					{
 						var VelocityOffset = (TravelDirection * Speed);
 						FlightGlobals.ActiveVessel.SetWorldVelocity (VelocityOffset);
-//					}
 				}
 				if ((FlightGlobals.ActiveVessel.orbit.eccentricity < 1) && (ElipMode == 1)) // For Elliptical Orbits. Conserve Angular Momentum directly by altering state vectors
 				{
 					Speed = OriginalSpeed * (OriginalFrameTrueRadius / (FlightGlobals.ActiveVessel.orbit.radius));
-//					if (Vector3d.Magnitude (Krakensbane.GetFrameVelocity ()) > 0) 
-//					{
-//						var VelocityOffset = (TravelDirection * Speed) - Krakensbane.GetFrameVelocity ();
-//						FlightGlobals.ActiveVessel.ChangeWorldVelocity (VelocityOffset);
-//					}
-//					if (Vector3d.Magnitude (Krakensbane.GetFrameVelocity ()) == 0) 
-//					{
 						var VelocityOffset = (TravelDirection * Speed);
 						FlightGlobals.ActiveVessel.SetWorldVelocity (VelocityOffset);
-//					}
 					if (((OriginalFrameTrueRadius / FlightGlobals.ActiveVessel.orbit.radius) <= 0.75) || ((OriginalFrameTrueRadius / FlightGlobals.ActiveVessel.orbit.radius) <= 1.25)) // re-set variables when ratio between current ratio and original gets too far from 1
 					{
 						OriginalSpeed = Vector3d.Magnitude (FlightGlobals.ActiveVessel.orbit.GetRelativeVel ());
 						OriginalFrameTrueRadius = FlightGlobals.ActiveVessel.orbit.radius;
 					}
 				}
-			}
-			if (((FlightGlobals.ActiveVessel.orbit.eccentricity < 1) && (ElipMode == 0)) || ((FlightGlobals.ActiveVessel.orbit.eccentricity > 1) && (ElipMode == 1)) || (PreviousBodyName != FlightGlobals.currentMainBody))
-			if (PreviousBodyName != FlightGlobals.currentMainBody)
+            }
+            if (((FlightGlobals.ActiveVessel.orbit.eccentricity < 1) && (ElipMode == 0)) || ((FlightGlobals.ActiveVessel.orbit.eccentricity > 1) && (ElipMode == 1)) || (PreviousBodyName != FlightGlobals.currentMainBody))
+			if (PreviousBodyName != FlightGlobals.ActiveVessel.mainBody)
 			{
 				SetAMStartStateVars();
 			}
@@ -573,30 +585,30 @@ namespace WarpEngine
 			}
 		}
 
-		private List<Vessel> GetNearbyVessels(int range, bool includeSelf)
-		{
-			try
-			{
-				var vessels = new List<Vessel>();
-				foreach (var v in FlightGlobals.Vessels.Where(
-					x => x.mainBody == vessel.mainBody))
-				{
-					if (v == vessel && !includeSelf) continue;
-					var posCur = vessel.GetWorldPos3D();
-					var posNext = v.GetWorldPos3D();
-					var distance = Vector3d.Distance(posCur, posNext);
-					if (distance < range)
-					{
-						vessels.Add(v);
-					}
-				}
-				return vessels;
-			}
-			catch (Exception ex)
-			{
-				print(String.Format("[WARP] - ERROR in GetNearbyVessels - {0}", ex.Message));
-				return new List<Vessel>();
-			}
-		}
+		//private List<Vessel> GetNearbyVessels(int range, bool includeSelf)
+		//{
+		//	try
+		//	{
+		//		var vessels = new List<Vessel>();
+		//		foreach (var v in FlightGlobals.Vessels.Where(
+		//			x => x.mainBody == vessel.mainBody))
+		//		{
+		//			if (v == vessel && !includeSelf) continue;
+		//			var posCur = vessel.GetWorldPos3D();
+		//			var posNext = v.GetWorldPos3D();
+		//			var distance = Vector3d.Distance(posCur, posNext);
+		//			if (distance < range)
+		//			{
+		//				vessels.Add(v);
+		//			}
+		//		}
+		//		return vessels;
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		print(String.Format("[WARP] - ERROR in GetNearbyVessels - {0}", ex.Message));
+		//		return new List<Vessel>();
+		//	}
+		//}
 	}
 }

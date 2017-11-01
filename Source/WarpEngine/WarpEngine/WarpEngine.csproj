@@ -62,7 +62,9 @@
   <ItemGroup>
     <Compile Include="ColorUtilities.cs" />
     <Compile Include="ShipInfo.cs" />
-    <Compile Include="USI_ModuleWarpEngine.cs" />
+    <Compile Include="USI_ModuleWarpEngine.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
