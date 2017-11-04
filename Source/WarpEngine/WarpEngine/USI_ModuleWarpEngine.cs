@@ -262,8 +262,7 @@ namespace WarpEngine
 			return true;
 		}
 
-        //Maximum warp reduces as one gets closer to a planetary body - limited by SOI so physics ticks are an issue. 
-        private void GravityBrake()
+        private void GravityBrake() //Maximum warp reduces as one gets closer to a planetary body - limited by SOI so physics ticks are an issue. 
         {
             var cutoffRadius = GravFactor * FlightGlobals.ActiveVessel.mainBody.Radius;
             var currentbody = FlightGlobals.ActiveVessel.mainBody;
@@ -476,24 +475,38 @@ namespace WarpEngine
 		}
 		private void DecoupleBubbleParts()
 		{
-			try
-			{
-				foreach (var p in vessel.parts)
-				{
-					var posPart = p.partTransform.position;
-					var posBubble = part.partTransform.position;
-					double distance = Vector3d.Distance(posBubble, posPart);
-					if (distance > BubbleSize)
-					{
-						print("[WARP] Decoupling Part " + p.name);
-						p.decouple();
-					}
-				}
-			}
-			catch (Exception)
-			{
-				print("[WARP] ERROR IN DecoupleBubbleParts");
-			}
+            try
+            {
+                int warpenginecount = 0;
+                foreach (var p in vessel.parts)
+                {
+                    var posPart = p.partTransform.position;
+                    var posBubble = part.partTransform.position;
+                    double distance = Vector3d.Distance(posBubble, posPart);
+                    if (distance > BubbleSize)
+                    {
+                        print("Part outside of warp bubble destroyed " + p.name);
+                        p.explode();
+                    }
+                    if ((p.Modules.Contains("USI_ModuleWarpEngine") == true) && (p.FindModuleImplementing<ModuleEngines>().getIgnitionState == true))
+                    {
+                        warpenginecount++;
+                    }
+                }
+                if (warpenginecount > 1)
+                {
+                    ScreenMessages.PostScreenMessage("Invited Kraken - Too Many Active Warp Drives", 5f, ScreenMessageStyle.UPPER_CENTER);
+                        foreach (var p in vessel.parts)
+                        {
+                                p.explode();
+                                part.explode();
+                        }
+                }
+            }  
+            catch (Exception)
+            {
+                print("[WARP] ERROR IN DecoupleBubbleParts");
+            }
 		}
 		private void CheckBubbleDeployment(int speed)
 		{
