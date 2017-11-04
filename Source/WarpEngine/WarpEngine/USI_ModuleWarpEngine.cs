@@ -406,7 +406,7 @@ namespace WarpEngine
 					Speed = OriginalSpeed * (OriginalFrameTrueRadius / (FlightGlobals.ActiveVessel.orbit.radius));
 						var VelocityOffset = (TravelDirection * Speed);
 						FlightGlobals.ActiveVessel.SetWorldVelocity (VelocityOffset);
-					if (((OriginalFrameTrueRadius / FlightGlobals.ActiveVessel.orbit.radius) <= 0.75) || ((OriginalFrameTrueRadius / FlightGlobals.ActiveVessel.orbit.radius) <= 1.25)) // re-set variables when ratio between current ratio and original gets too far from 1
+					if (((OriginalFrameTrueRadius / FlightGlobals.ActiveVessel.orbit.radius) <= 0.75) || ((OriginalFrameTrueRadius / FlightGlobals.ActiveVessel.orbit.radius) >= 1.25)) // re-set variables when ratio between current ratio and original gets too far from 1
 					{
 						OriginalSpeed = Vector3d.Magnitude (FlightGlobals.ActiveVessel.orbit.GetRelativeVel ());
 						OriginalFrameTrueRadius = FlightGlobals.ActiveVessel.orbit.radius;
