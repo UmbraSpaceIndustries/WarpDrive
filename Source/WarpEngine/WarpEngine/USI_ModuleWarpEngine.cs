@@ -7,42 +7,42 @@ using UnityEngine;
 namespace WarpEngine
 {
     public class USI_ModuleWarpEngine : PartModule
-	{
-		[KSPField(guiActive = true, guiName = "Warp Drive", guiActiveEditor = false)]
-		public string status = "inactive";
+    {
+        [KSPField(guiActive = true, guiName = "Warp Drive", guiActiveEditor = false)]
+        public string status = "inactive";
 
-		[KSPField]
-		public string deployAnimationName = "Engage";
+        [KSPField]
+        public string deployAnimationName = "Engage";
 
-		[KSPField]
-		public string unfoldAnimationName = "Deploy";
+        [KSPField]
+        public string unfoldAnimationName = "Deploy";
 
-		[KSPField]
-		public string warpAnimationName = "WarpField";
+        [KSPField]
+        public string warpAnimationName = "WarpField";
 
-		[KSPField] 
-		public float WarpFactor = 1.65f;
+        [KSPField]
+        public float WarpFactor = 6f;
 
-		[KSPField]
-		public float Demasting = 10f;
+        [KSPField]
+        public float Demasting = 10f;
 
-		[KSPField]
-		public int MaxAccelleration = 4;
+        [KSPField]
+        public int MaxAccelleration = 4;
 
-		[KSPField]
-		public float MinThrottle = 0.05f;
+        [KSPField]
+        public float MinThrottle = 0.05f;
 
-		[KSPField(isPersistant = true)] 
-		public bool IsDeployed = false;
+        [KSPField(isPersistant = true)]
+        public bool IsDeployed = false;
 
-		[KSPField]
-		public int DisruptRange = 2000;
+        [KSPField]
+        public int DisruptRange = 2000;
 
-		[KSPField]
-		public int BubbleSize = 20;
+        [KSPField]
+        public int BubbleSize = 20;
 
-		[KSPField]
-		public double MinAltitude = 1d;
+        [KSPField]
+        public double MinAltitude = 1d;
 
         [KSPField]
         public double GravFactor = 0.95d;
@@ -50,22 +50,27 @@ namespace WarpEngine
         [KSPField]
         public double BrakeFalloff = 0.9d;
 
-        [KSPField(guiName = "Conservation", isPersistant = true, guiActiveEditor = true, guiActive = false)]
-		[UI_Toggle(disabledText = "Velocity", enabledText = "Angular Momentum")]
-		protected bool AMConservationMode = false;
-		[KSPField(guiName = "Conservation", guiActiveEditor = false, guiActive = true)]
-		public string ConservationMode;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "T-Start", advancedTweakable = true), UI_FloatRange(minValue = 85f, maxValue = 100f, stepIncrement = 1f)]
+        public float TurboPoint = 92f;
 
-		[KSPEvent(guiActive = false, active = true, guiActiveEditor = true, guiName = "Toggle Bubble Guide", guiActiveUnfocused = false)]
-		public void ToggleBubbleGuide()
-		{
-			var gobj = FindEditorWarpBubble();
-			if (gobj != null)
-				gobj.GetComponent<Renderer>().enabled = !gobj.GetComponent<Renderer>().enabled;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Turbo Factor", advancedTweakable = true), UI_FloatRange(minValue = 1, maxValue = 8, stepIncrement =1f)]
+        public float TurboFactor = 4f;
+        [KSPField]
+        public float TurboMult = 1f;
 
-		}
+        [KSPField(guiName = "Conservation", isPersistant = true, guiActiveEditor = true, guiActive = false), UI_Toggle(disabledText = "Velocity", enabledText = "Angular Momentum")]
+        protected bool AMConservationMode = false;
+        [KSPField(guiName = "Conservation", guiActiveEditor = false, guiActive = true)] public string ConservationMode;
 
-	    private GameObject editorBubble;
+        [KSPEvent(guiActive = false, active = true, guiActiveEditor = true, guiName = "Toggle Bubble Guide", guiActiveUnfocused = false)]
+        public void ToggleBubbleGuide()
+        {
+            var gobj = FindEditorWarpBubble();
+            if (gobj != null)
+                gobj.GetComponent<Renderer>().enabled = !gobj.GetComponent<Renderer>().enabled;
+        }
+
+        private GameObject editorBubble;
 
 		public Animation DeployAnimation
 		{
@@ -124,8 +129,8 @@ namespace WarpEngine
  		//private double CurrentSpeed;
 		private List<ShipInfo> _shipParts;
         private double GravityBrakes;
-		// Angular Momentum Calculation Variables
-		private Vector3d TravelDirection;
+        // Angular Momentum Calculation Variables
+        private Vector3d TravelDirection;
 		private double Speed;
 		private CelestialBody PreviousBodyName;
 		private double OriginalFrameTrueRadius;
@@ -163,7 +168,6 @@ namespace WarpEngine
 	    {
             eModule = part.FindModuleImplementing<ModuleEngines>();
             editorBubble = FindEditorWarpBubble();
-
             foreach (var gobj in GameObject.FindGameObjectsWithTag("Icon_Hidden"))
             {
                 if (gobj.name == "Torus_001")
@@ -341,29 +345,36 @@ namespace WarpEngine
 					}
 
 
-					//Take into acount safe accelleration/decelleration
-					//if (distance > CurrentSpeed + Math.Pow(10,MaxAccelleration))
-					//	distance = CurrentSpeed + Math.Pow(10, MaxAccelleration);
-					//if (distance < CurrentSpeed - Math.Pow(10, MaxAccelleration))
-					//	distance = CurrentSpeed - Math.Pow(10, MaxAccelleration);
-					//CurrentSpeed = distance;
+                    //Take into acount safe accelleration/decelleration
+                    //if (distance > CurrentSpeed + Math.Pow(10,MaxAccelleration))
+                    //	distance = CurrentSpeed + Math.Pow(10, MaxAccelleration);
+                    //if (distance < CurrentSpeed - Math.Pow(10, MaxAccelleration))
+                    //	distance = CurrentSpeed - Math.Pow(10, MaxAccelleration);
+                    //CurrentSpeed = distance;
 
-					//if (distance > 1000)
-					//{
-						//Let's see if we can get rid of precision issues with distance.
-					//	Int32 precision = Math.Round(distance, 0).ToString().Length - 1;
-					//	if (precision > MaxAccelleration) precision = MaxAccelleration;
-					//	var magnitude = Math.Round((distance / Math.Pow(10, precision)),0);
-					//	var jumpDistance = Math.Pow(10,precision) * magnitude;
-					//	distance = jumpDistance;
-					//}
+                    //if (distance > 1000)
+                    //{
+                    //Let's see if we can get rid of precision issues with distance.
+                    //	Int32 precision = Math.Round(distance, 0).ToString().Length - 1;
+                    //	if (precision > MaxAccelleration) precision = MaxAccelleration;
+                    //	var magnitude = Math.Round((distance / Math.Pow(10, precision)),0);
+                    //	var jumpDistance = Math.Pow(10,precision) * magnitude;
+                    //	distance = jumpDistance;
+                    //}
 
-					if (eModule.currentThrottle > MinThrottle)
+                    double maxspeeddisp = Math.Pow(LIGHTSPEED * WarpFactor, GravityBrakes) / LIGHTSPEED;
+                    double ts = WarpFactor * (TurboPoint / 100d);
+                    if (maxspeeddisp >= ts)
+                    {
+                        distance = distance / (Math.Log(1/GravityBrakes) + (1 / (TurboFactor * TurboMult)));
+                        maxspeeddisp = maxspeeddisp / (Math.Log(1 / GravityBrakes) + (1 / (TurboFactor*TurboMult)));
+                    }
+                    if (eModule.currentThrottle > MinThrottle)
 					{
-                        // Translate through space on the back of a Kraken!
-                        distance = Math.Pow(distance,GravityBrakes) * TimeWarp.fixedDeltaTime;
+                        // Translate through space on the back of a Kraken!                    
+                        distance = Math.Pow(distance, GravityBrakes) * TimeWarp.fixedDeltaTime;
 						Vector3d ps = FlightGlobals.ActiveVessel.transform.position + (transform.up*(float) distance);
-						//krakensbane.setOffset(ps);
+                        //krakensbane.setOffset(ps);
                         FloatingOrigin.SetOutOfFrameOffset(ps);
 
 						//AngularMomentum Block
@@ -377,9 +388,7 @@ namespace WarpEngine
 						SetAMStartStateVars();
 					}
                     double speedcdisp = (distance) / (LIGHTSPEED * TimeWarp.fixedDeltaTime);
-                    double maxspeeddisp = Math.Pow(LIGHTSPEED * WarpFactor, GravityBrakes) / LIGHTSPEED;
-
-                    status = String.Format("{0:g4}c [Max {1:f4}c]", speedcdisp, maxspeeddisp);
+                    status = String.Format("{0:g3}c [Max {1:f3}c] T@{2:f3}c", speedcdisp, maxspeeddisp, ts);
                 }
 			}
 			catch (Exception ex)
@@ -445,11 +454,14 @@ namespace WarpEngine
 			foreach (var p in vessel.parts)
 			{
 				var expl = r.Next(0, 100);
-				if (expl <= speed * 100)
+				if (expl <= 33)
 				{
-					if(p.mass <= (Demasting * speed) && p.children.Count == 0)
-						p.explode();
+					p.explode();
 				}
+                if (expl >= 66)
+                {
+                    p.decouple(10000);
+                }
 			}
 		}
 
@@ -486,7 +498,7 @@ namespace WarpEngine
                     if (distance > BubbleSize)
                     {
                         print("Part outside of warp bubble destroyed " + p.name);
-                        p.explode();
+                        p.decouple(10000);
                     }
                     if ((p.Modules.Contains("USI_ModuleWarpEngine") == true) && (p.FindModuleImplementing<ModuleEngines>().getIgnitionState == true))
                     {
