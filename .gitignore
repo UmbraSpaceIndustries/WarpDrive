@@ -10,3 +10,8 @@ Source/WarpEngine/WarpEngine/obj/Debug/WarpEngine.csproj.FileListAbsolute.txt
 Source/WarpEngine/WarpEngine/bin/Debug/Mono.Cecil.dll
 Source/WarpEngine/WarpEngine/obj/Debug/WarpEngine.dll
 *.zip
+/.vs/VSWorkspaceState.json
+/.vs
+/Source/WarpEngine/.vs/WarpEngine/v15/Server/sqlite3
+/Source/WarpEngine/WarpEngine/obj/Release
+/Source/WarpEngine/WarpEngine/obj/Debug/WarpEngine.csproj.CopyComplete
