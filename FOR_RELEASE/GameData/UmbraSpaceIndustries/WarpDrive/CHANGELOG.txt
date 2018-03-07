@@ -1,18 +1,18 @@
-0.8.0 - 2017.11.10
+0.8.0 - 2017.03.06
 ------------------
-Major Changes!
-ZZZ's Warp Drive Models now included standard
-"Gravity Brake" slows warping craft in a gravity well.
-Turbo Mode vastly increases ship velocity when reaching user set warp speed
-Angular Momentum mode fixed
-Distance travelled per frame is now tied to the physics tick in settings
-Multiple warp drives active on a single ship, now destroy said ship
-Failsafe distance now 1/2 planetary radius
-Xenon thrusters thrust drastically reduced
-Electrical use massively increased - including patch for NFE, USI, FFT, & DSEV
-Re-balanced fuel use & exotic matter recovery.
-Default maximum warp dropped to 6c. True maximum warp in stock is about 25c (Turbo).
-Included patch for scaled systems
+Major Changes thanks to Helaeon (Thanks!  You rock!)
+- ZZZ's Warp Drive Models now included standard
+- "Gravity Brake" slows warping craft in a gravity well.
+- Turbo Mode vastly increases ship velocity when reaching user set warp speed
+- Angular Momentum mode fixed
+- Distance travelled per frame is now tied to the physics tick in settings
+- Multiple warp drives active on a single ship, now destroy said ship
+- Failsafe distance now 1/2 planetary radius
+- Xenon thrusters thrust drastically reduced
+- Electrical use massively increased - including patch for NFE, USI, FFT, & DSEV
+- Re-balanced fuel use & exotic matter recovery.
+- Default maximum warp dropped to 6c. True maximum warp in stock is about 25c (Turbo).
+- Included patch for scaled systems
 
 0.7.0 - 2017.10.09
 ------------------
