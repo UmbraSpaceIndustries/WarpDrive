@@ -50,6 +50,9 @@ namespace WarpEngine
         [KSPField]
         public double BrakeFalloff = 0.9d;
 
+        [KSPField]
+        public double minMaxSpeed = 0.001d;
+
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "T-Start", advancedTweakable = true), UI_FloatRange(minValue = 85f, maxValue = 100f, stepIncrement = 1f)]
         public float TurboPoint = 92f;
 
@@ -371,9 +374,16 @@ namespace WarpEngine
                     }
                     if (eModule.currentThrottle > MinThrottle)
 					{
-                        // Translate through space on the back of a Kraken!                    
-                        distance = Math.Pow(distance, GravityBrakes) * TimeWarp.fixedDeltaTime;
-						Vector3d ps = FlightGlobals.ActiveVessel.transform.position + (transform.up*(float) distance);
+                        // Translate through space on the back of a Kraken!
+                        if (maxspeeddisp >= minMaxSpeed)
+                        {
+                            distance = Math.Pow(distance, GravityBrakes) * TimeWarp.fixedDeltaTime;
+                        }
+                        else
+                        { distance = minMaxSpeed * LIGHTSPEED * TimeWarp.fixedDeltaTime;
+                            maxspeeddisp = minMaxSpeed;
+                        }
+                            Vector3d ps = FlightGlobals.ActiveVessel.transform.position + (transform.up*(float) distance);
                         //krakensbane.setOffset(ps);
                         FloatingOrigin.SetOutOfFrameOffset(ps);
 
