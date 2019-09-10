@@ -39,7 +39,7 @@ namespace WarpEngine
         public int DisruptRange = 2000;
 
         [KSPField]
-        public int BubbleSize = 20;
+        public double BubbleSize = 20d;
 
         [KSPField]
         public double MinAltitude = 1d;
