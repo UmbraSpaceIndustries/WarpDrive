@@ -41,6 +41,9 @@ namespace WarpEngine
         [KSPField]
         public double BubbleSize = 20d;
 
+	//Copy the BubbleSize value to another variable later - gf
+        public double staticBubbleSize = 20d;
+
         [KSPField]
         public double MinAltitude = 1d;
 
@@ -178,6 +181,8 @@ namespace WarpEngine
                     warpBubble = gobj;
                 }
             }
+	    //Copy BubbbleSize to staticBubbleSize for later reuse - gf
+	    staticBubbleSize = BubbleSize;
         }
 
 	    public override void OnLoad(ConfigNode node)
@@ -570,6 +575,8 @@ namespace WarpEngine
 		{
 			try
 			{
+				// Turn off the bubble when retracted (Don't know if this can be zero or has to be nonzero - gf)
+				BubbleSize = 0.1;
 				IsDeployed = false;
 				PlayDeployAnimation(speed);
 			}
@@ -582,6 +589,8 @@ namespace WarpEngine
 		{
 			try
 			{
+				//Re-copy stored BubbleSize to BubbleSize to reset warp bubble to intended value - gf
+				BubbleSize = staticBubbleSize;
 				IsDeployed = true;
 				PlayDeployAnimation(speed);
 				//For Angular Momentum Calculations
