@@ -85,7 +85,7 @@ pipeline {
           $ReferencePath = Join-Path -Path $JobReleasePath -ChildPath "000_USITools"
 
           dotnet build --output FOR_RELEASE/GameData/UmbraSpaceIndustries/WarpDrive --configuration $env:BUILD_CONFIG `
-            --verbosity detailed /p:ReferencePath="$ReferencePath" ./Source/WarpDrive/WarpDrive.csproj
+            --verbosity detailed /p:ReferencePath="$ReferencePath" ./Source/WarpEngine/WarpEngine.csproj
         '''
       }
     }
