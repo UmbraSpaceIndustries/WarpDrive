@@ -1,9 +1,9 @@
 {
      "NAME":"USI Alcubierre Drive",
-	 "URL":"https://raw.githubusercontent.com/BobPalmer/WarpDrive/master/FOR_RELEASE/GameData/UmbraSpaceIndustries/WarpDrive/WarpDrive.version",
-	 "DOWNLOAD":"https://github.com/BobPalmer/WarpDrive/releases",
+	 "URL":"https://raw.githubusercontent.com/UmbraSpaceIndustries/WarpDrive/master/FOR_RELEASE/GameData/UmbraSpaceIndustries/WarpDrive/WarpDrive.version",
+	 "DOWNLOAD":"https://github.com/UmbraSpaceIndustries/WarpDrive/releases",
      "GITHUB":{
-         "USERNAME":"BobPalmer",
+         "USERNAME":"UmbraSpaceIndustries",
          "REPOSITORY":"WarpDrive",
          "ALLOW_PRE_RELEASE":false
      },
